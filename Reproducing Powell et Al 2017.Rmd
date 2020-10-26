@@ -1,0 +1,83 @@
+---
+title: "Reproducing Powell et Al. 2017"
+author: "Fiona Lightbody"
+date: "9/28/2020"
+output:
+  pdf_document: default
+  html_document: default
+bibliography: 
+csl: ecology.csa
+---
+
+#Reproducing code from 
+#[@Powell:2017dd] 
+
+#@article{RN14,
+#author = {Powell, Scott and Donaldson-Matasci, Matina and Woodrow-Tomizuka, Augustus and Dornhaus, Anna},
+#title = {Context-dependent defences in turtle ants: Resource defensibility and threat #level induce dynamic shifts in soldier deployment},
+#journal = {Functional Ecology},
+#volume = {31},
+#number = {12},
+#pages = {2287-2298},
+#ISSN = {0269-8463},
+#DOI = {10.1111/1365-2435.12926},
+#url = {https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/1365-2435.12926},
+#year = {2017},
+#type = {Journal Article}
+}
+
+
+#STUCK: I cannot figure out how to put this paper into the necessary citation format from endnote into a bibliography file 
+
+
+#COMPLETED: loaded in data and packages 
+```{r setup, include=TRUE}
+rm(list=ls())
+
+library(survival)
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+```
+#package 'survival' was built under R version 3.6.2 and was downloaded in the binary format, not the source version
+
+```{r data_input, include=TRUE}
+Collection_data <- read_csv("~/Google Drive/AA Graduate /Data and Software Tools EBIO6660/data/Cephalotes_rohweri_collection_data.csv") 
+Field_expt <- read_csv("~/Google Drive/AA Graduate /Data and Software Tools EBIO6660/data/Cephalotes_rohweri_field_expt.csv")
+
+Lab_expt <- read_csv("~/Google Drive/AA Graduate /Data and Software Tools EBIO6660/data/Cephalotes_rohweri_lab_expt.csv")
+
+```
+#data was readily available by the author in csv format. So far no metadata or code has been located for this paper. 
+
+#STILL WORKING ON IT: Next I will work with the data to generate summarizing graphics and work on the first boxplot which I seek to reproduce. Next I will familiarize myself with the survival package in order to generate the survivorship curve. 
+
+### PROGRESS REPORT OCT 25 
+##STUCK: need to understand difference between col character and col double: running the above data into R gets this in response (below), likely because Powell used solely R (not R Studio) to peform his analysis. Code has not yet been receieved, but contact was made. 
+#Parsed with column specification: 
+cols(
+  colony = col_character(),
+  nest_no = col_double(),
+  workers = col_double(),
+  soldiers = col_double(),
+  ent_area_mm = col_double()
+)
+Parsed with column specification:
+cols(
+  tree = col_character(),
+  entrance_size = col_character(),
+  nest_pop = col_character(),
+  week_death = col_character()
+)
+Parsed with column specification:
+cols(
+  colony = col_character(),
+  treatment = col_character(),
+  position = col_double(),
+  entrance = col_character(),
+  treatment_phase = col_character(),
+  workers = col_character(),
+  soldiers = col_double(),
+  eggs = col_character(),
+  larvae = col_character(),
+  pupae = col_character()
+)

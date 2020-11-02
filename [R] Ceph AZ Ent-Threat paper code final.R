@@ -1,0 +1,384 @@
+# ---------- FIELD COLLECTION DATA ----------
+
+## READ IN FIELD COLLECTION DATA
+c_cavs_sum <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/collection_data-cavity_summary_non_incipient.csv") #Cavity data summarized for all non-inicipient colonies.
+
+raw_cavs <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/collection_data-cavity_data_non_incipient.csv")
+
+
+## POPULATION SOLDIER DEPLOYMNET VARIATION
+par(pty="s", bty="l", tcl=-0.2, mgp=c(2.4, 0.6, 0), fin=c(4.0, 4.0))
+boxplot(c_cavs_sum$mad_dep, cex.axis=0.8, ylim=c(0,18), las=1, xlab=expression(italic("C. rohweri")~"colonies"), ylab="Variation in soldier deployment\n across cavities (MAD)", whisklty=1, boxlwd=1, boxwex=0.7, medlwd=1, whisklwd=1, outpch=1, outcex=1, outlwd=1)
+points(1,mean(c_cavs_sum$mad_dep),pch=4,col="black") #To add a point for the calculated mean
+
+boxplot(c_cavs_sum$mad_dep, plot=FALSE) # Print values used to build the boxplot
+
+
+par(pty="s", bty="l", tcl=-0.2, mgp=c(2.4, 0.6, 0), fin=c(4.0, 4.0))
+boxplot(c_cavs_sum$mad_dep_prop, cex.axis=0.8, ylim=c(0,0.12), las=1, xlab=expression(italic("C. rohweri")~"colonies"), ylab="Variation in prop. soldier deployment\n across cavities (MAD)", whisklty=1, boxlwd=1, boxwex=0.7, medlwd=1, whisklwd=1, outpch=1, outcex=1, outlwd=1)
+points(1,mean(c_cavs_sum$mad_dep_prop),pch=4,col="black") #To add a point for the calculated mean
+
+boxplot(c_cavs_sum$mad_dep_prop, plot=FALSE) # Print values used to build the bixplot
+
+
+
+## POPULATION ENTRANCE-USE
+
+### FOR RAW DATA
+par(pty="s", bty="l", tcl=-0.02, mgp=c(2.4, 0.6, 0), fin=c(4.0, 4.0))
+boxplot(wild_ents$ent_area, cex.axis=0.8, ylim=c(2,39), las=1, log="y", xaxt="n", yaxt="n", xlab=expression(italic("C. rohweri")~"nests"), ylab="Entrance area (mm²)", whisklty=1, boxlwd=1, boxwex=0.7, medlwd=1, whisklwd=1, outpch=1, outcex=1, outlwd=1)
+#points(1,mean(wild_ents$ent_area),pch=4,col="black") #To add a point for the calculated mean
+ytemptck <- c(2,3,4,5,6,7,8,9,10,20,30,40)
+axis(2, at=ytemptck, tck=-0.02, label=F, lwd=0, lwd.ticks=1)
+axis(2, at=c(2,5,10,40), label=c(2,5,10,40), mgp=c(3,0.6,0), lwd=0, cex.axis=0.8, las=1)
+summary(wild_ents$ent_area)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+cavities#2.100   3.200   4.850   6.916   7.600  39.700
+
+### FOR HEAD-AREAS DATA
+par(pty="s", bty="l", tcl=-0.2, mgp=c(2.4, 0.6, 0), fin=c(4.0, 4.0))
+boxplot(wild_ents$rel_area, cex.axis=0.8, ylim=c(0.7,18), log="y", xaxt="n", yaxt="n",las=1, xlab=expression(italic("C. rohweri")~"nests"), ylab="Entrance area (head areas)", whisklty=1, boxlwd=1, boxwex=0.7, medlwd=1, whisklwd=1, outpch=1, outcex=1, outlwd=1)
+#points(1,mean(wild_ents$rel_area),pch=4,col="black") #To add a point for the calculated mean
+ytemptck <- c(1,2,3,4,5,6,7,8,9,10,20)
+axis(2, at=ytemptck, tck=-0.02, label=F, lwd=0, lwd.ticks=1)
+axis(2, at=c(1,5,10,20), label=c(1,5,10,20), mgp=c(3,0.6,0), lwd=0, cex.axis=0.8, las=1)
+summary(wild_ents$rel_area)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.700   1.100   1.700   2.381   2.600  13.700 
+
+
+## GLOBAL SUMMARY OF SOLDIER AND WORKER NUMBERS ACROSS ALL CAVITIES
+
+summary(raw_cavs$soldiers)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#1.000   3.000   7.000   8.886  13.000  37.000 
+  
+summary(raw_cavs$workers)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#5.00   24.50   39.00   46.63   55.50  160.00 
+   
+cav_pop <- raw_cavs$colony_size
+summary(cav_pop)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#8.00   31.00   46.00   55.52   66.00  197.00 
+
+summary(raw_cavs$t_brood)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+#0.0    11.0    20.5    26.3    33.0   113.0      23 
+
+
+
+# ---------- FIELD EXPERIMENT ----------
+
+## LOAD LIBRARY AND READ IN DATA
+library(survival)
+defend <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/field_expt-surv_simp.csv")
+
+
+## SUBSETTING DATA
+defend_s <- defend[ which(defend$hole_size=='S'), ] #Subset data for all small entrance cavities
+
+defend_s_yn <-defend_s[which(defend_s$soldiers=='y'), ] #Subset data for whether cavities have soldiers or not
+
+defend_s0s1 <-defend_s[which(defend_s$s0_s1=='y'), ] #Subset data for only s0 and s1 cavities
+
+defend_s0s6 <-defend_s[which(defend_s$s0_s6=='y'), ] #Subset data for only s0 and s6 cavities
+
+defend_s1s6 <-defend_s[which(defend_s$s1_s6=='y'), ] #Subset data for only s1 and s6 cavities 
+
+
+## CREATE SURVIVAL OBJECTS
+defend_surv <- Surv(defend$week, defend$death) #Survival object for all data
+
+defend_surv_s <- Surv(defend_s$week, defend_s$death) #Survival object for all small-ent data
+
+defend_surv_s0s1 <- Surv(defend_s0s1$week, defend_s0s1$death) #Survival data for all s0 and s1 data
+
+defend_surv_s0s6 <- Surv(defend_s0s6$week, defend_s0s6$death) #Survival data for all s0 and s6 data
+
+defend_surv_s1s6 <- Surv(defend_s1s6$week, defend_s1s6$death) #Survival data for all s1 and s6 data
+
+
+## SURVIVAL ANALYSES FOR ALL COMBINATIONS
+
+survdiff(defend_surv ~ defend$hole_size, rho=0) #Comparison of small vs. bigs ents. 
+                    #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend$hole_size=B 33       33     20.1      8.29      37.4
+#defend$hole_size=S 33       20     32.9      5.06      37.4
+#Chisq= 37.4  on 1 degrees of freedom, p= 9.47e-10 
+
+survdiff(defend_surv_s ~ defend_s$nest, rho=0) #Comparison for 0, 1, and 6 soldiers.
+                  #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend_s$nest=S0 11       11     5.93     4.335     7.256
+#defend_s$nest=S1 11        7     8.27     0.195     0.359
+#defend_s$nest=S6 11        5     8.80     1.641     3.149 
+#Chisq= 7.6  on 2 degrees of freedom, p= 0.0218
+
+survdiff(defend_surv_s0s1 ~ defend_s0s1$nest, rho=0) #Comparison of 0 vs. 1 soldier. 
+                     #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend_s0s1$nest=S0 11       11      7.1      2.14       4.6
+#defend_s0s1$nest=S1 11        7     10.9      1.39       4.6
+#Chisq= 4.6  on 1 degrees of freedom, p= 0.0321 
+
+survdiff(defend_surv_s0s6 ~ defend_s0s6$nest, rho=0) #Comparison of 0 vs. 6 soldier. 
+                     #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend_s0s6$nest=S0 11       11     6.52      3.08      6.41
+#defend_s0s6$nest=S6 11        5     9.48      2.12      6.41
+#Chisq= 6.4  on 1 degrees of freedom, p= 0.0114 
+
+survdiff(defend_surv_s1s6 ~ defend_s1s6$nest, rho=0) #Comparison of 1 vs. 6 soldier. 
+                     #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend_s1s6$nest=S1 11        7     5.77     0.262     0.567
+#defend_s1s6$nest=S6 11        5     6.23     0.243     0.567
+#Chisq= 0.6  on 1 degrees of freedom, p= 0.452 
+
+
+### Simple survival plot for all three small-ent treatments
+plot_s <- survfit((defend_surv_s ~ defend_s$nest), conf.type="none")
+plot(plot_s, xlab="Time", ylab="Proportional cavity survival") # Plot with all lines
+
+
+### Fancy survival plot for all three small-ent treatments
+par(pty="s", bty="l", fin=c(4.0, 4.0)) #Set plot space
+defend_s0 <- defend[ which(defend$nest=='S0'), ] #subset for s0 data
+defend_surv_s0 <- Surv(defend_s0$week, defend_s0$death) #survival object for s0 data
+plot_s0 <- survfit((defend_surv_s0 ~ defend_s0$nest), conf.type="none") #create survival curve for s0
+defend_s1 <- defend[ which(defend$nest=='S1'), ] #subset for s1 data
+defend_surv_s1 <- Surv(defend_s1$week, defend_s1$death) #survival object for s1 data
+plot_s1 <- survfit((defend_surv_s1 ~ defend_s1$nest), conf.type="none") #create survival curve for s1
+defend_s6 <- defend[ which(defend$nest=='S6'), ] #subset for s6 data
+defend_surv_s6 <- Surv(defend_s6$week, defend_s6$death) #survival object for s6 data
+plot_s6 <- survfit((defend_surv_s6 ~ defend_s6$nest), conf.type="none") #create survival curve for s6
+plot(plot_s6, xlab="Weeks", ylab="Proportion of surviving cavities", mgp=c(3,0.6,0), lty=1, tck=-0.02, cex.axis=0.8, las=1) # Plot with S6 nests
+lines(plot_s1, lty=2) # Line for S1 nests
+lines(plot_s0, lty=3) # Line for S0 nests
+
+
+
+# ---------- LAB EXPERIMENTS ----------
+
+## READ IN DATA
+et_sum <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/lab_expt-ET_sum.csv")
+et_sum_sizes <-read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/lab_expt-ET_sum_sizes.csv")
+et_sum_sizes_l_no0 <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/lab_expt-ET_sum_sizes-lno0.csv")
+et_sum_sizes_s_no0 <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/lab_expt-ET_sum_sizes-sno0.csv")
+et_sum_sizes_nt_no0 <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/lab_expt-ET_sum_sizes_nt_no0.csv")
+et_sum_sizes_t_no0 <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/lab_expt-ET_sum_sizes_t_no0.csv")
+et_sum_td <- read.csv("/Users/scott/Desktop/Ceph AZ ET Cleaned for Analyses/lab_expt-ET_sum_td.csv")
+et_o_n <- read.csv("/Users/scott/Documents/Current papers/Ceph AZ Papers/Ceph AZ Ent-Threat Paper/Ceph AZ Ent-Threat Paper Analyses/Ceph AZ ET Cleaned for Analyses/lab_expt-ET_orig_new.csv")
+sold_nests_nt <- read.csv("/Users/scott/Dropbox/Current papers/Ceph AZ Papers/Ceph AZ Ent-Threat Paper/Ceph AZ Ent-Threat Paper Analyses/Ceph AZ ET Cleaned for Analyses/lab_expt-sold_nest_nt.csv")
+sold_nests_t <- read.csv("/Users/scott/Dropbox/Current papers/Ceph AZ Papers/Ceph AZ Ent-Threat Paper/Ceph AZ Ent-Threat Paper Analyses/Ceph AZ ET Cleaned for Analyses/lab_expt-sold_nest_t.csv")
+
+
+## CAVITY USE & DEFENSE
+### Subset data
+et_sum_nt<-(et_sum[et_sum$treatment=="no_threat",])
+et_sum_t<-(et_sum[et_sum$treatment=="threat",])
+
+### Analyses of number of cavities occupied - USING ONLY TOTAL NEW NESTS
+wilcox.test(et_sum_nt$total_new_nests, et_sum_t$total_new_nests, paired=TRUE) #Total cavity use under threat and no-threat
+#V = 22, p-value = 0.1984
+var.test(log(et_sum_nt$total_new_nests), log(et_sum_t$total_new_nests))
+#F = 0.5592, num df = 11, denom df = 11, p-value = 0.3493
+t.test(log(et_sum_nt$total_new_nests), log(et_sum_t$total_new_nests), paired=TRUE)
+#t = 1.409, df = 11, p-value = 0.1865
+
+
+wilcox.test(et_sum_nt$total_new_nests_large, et_sum_nt$total_new_nests_small, paired = TRUE)
+#V = 9, p-value = 0.1817
+var.test(log(et_sum_nt$total_new_nests_large), log(et_sum_nt$total_new_nests_small))
+t.test(log(et_sum_nt$total_new_nests_large), log(et_sum_nt$total_new_nests_small), paired = TRUE)
+#t = -1.6085, df = 11, p-value = 0.136
+
+wilcox.test(et_sum_t$total_new_nests_large, et_sum_t$total_new_nests_small, paired = TRUE)
+#V = 3.5, p-value = 0.04033
+var.test(log(et_sum_t$total_new_nests_large), log(et_sum_t$total_new_nests_small))
+t.test(log(et_sum_t$total_new_nests_large), log(et_sum_t$total_new_nests_small), paired = TRUE) #won't run
+
+### Analyses of number of defended cavities
+wilcox.test(et_sum_nt$total_sold_nests, et_sum_t$total_sold_nests, paired=TRUE)
+#V = 40.5, p-value = 0.02475
+var.test(log(et_sum_nt$total_sold_nests), log(et_sum_t$total_sold_nests))
+#F = 0.4611, num df = 11, denom df = 11, p-value = 0.2149
+t.test(log(et_sum_nt$total_sold_nests), log(et_sum_t$total_sold_nests), paired=TRUE)
+#t = 2.789, df = 11, p-value = 0.01762
+
+
+et_sum_nt<-(et_sum[et_sum$treatment=="no_threat",])
+wilcox.test(et_sum_nt$total_sold_nests_large, et_sum_nt$total_sold_nests_small, paired = TRUE)
+#V = 33.5, p-value = 0.2074
+var.test(log(et_sum_nt$total_sold_nests_large), log(et_sum_nt$total_sold_nests_small))
+#F = 1.997, num df = 11, denom df = 9, p-value = 0.3086
+t.test(log(et_sum_nt$total_sold_nests_large), log(et_sum_nt$total_sold_nests_small), paired = TRUE)
+
+
+
+et_sum_t<-(et_sum[et_sum$treatment=="threat",])
+wilcox.test(et_sum_t$total_sold_nests_large, et_sum_t$total_sold_nests_small, paired = TRUE)
+#V = 26.5, p-value = 0.9578
+
+### Figure for total defended cavities under no-threat and threat.
+library(lattice)
+dotplot(jitter(total_new_nests,0) ~ treatment, group=colony, data=et_sum, col="black", type=c("b"), ylab="Total new occupied nests", xlab="Threat context", aspect = 3/1.1, ylim=c(0.8,8.2)) # remove "col" argument to default to colored bars.
+
+library(lattice)
+dotplot(jitter(total_sold_nests,0.3) ~ treatment, group=colony, data=et_sum, col="black", type=c("b"), ylab="Total new defended nests", xlab="Threat context", aspect = 3/1.1, ylim=c(0.8,8.2)) # remove "col" argument to default to colored bars.
+
+### Figure for total defended large and small ent nests under no-threat
+library(lattice)
+dotplot(jitter(total_sold_nests,0.3) ~ ent, group=colony, data=sold_nests_nt, col="black", type=c("b"), ylab="New soldier-defended nests", xlab="Entrance size", aspect = 3/1.1, ylim=c(-0.2,4.2)) # remove "col" argument to default to colored bars.
+
+### Figure for total defended large and small ent nests under threat
+library(lattice)
+dotplot(jitter(total_sold_nests,0.3) ~ ent, group=colony, data=sold_nests_t, col="black", type=c("b"), ylab="New soldier-defended nests", xlab="Entrance size", aspect = 3/1.1, ylim=c(-0.2,4.2)) # remove "col" argument to default to colored bars.
+
+
+
+
+
+## LEVEL OF DEFENSE IN NEW DEFENDED CAVITIES
+
+### Subset data
+et_o_n_nt <- (et_o_n[et_o_n$treatment=="no_threat",])
+et_o_n_t <- (et_o_n[et_o_n$treatment=="threat",])
+et_sum_sizes_l<-(et_sum_sizes[et_sum_sizes$ent=="l",])
+et_sum_sizes_s<-(et_sum_sizes[et_sum_sizes$ent=="s",])
+et_sum_nt<-(et_sum[et_sum$treatment=="no_threat",])
+et_sum_t<-(et_sum[et_sum$treatment=="threat",])
+
+### Mean level of defense in original versus new cavities
+var.test(log(et_o_n_nt$mean_solds_o), log(et_o_n_nt$mean_solds_n)) #Test equal variance of log transformed no_threat data
+# F = 0.1954, num df = 11, denom df = 11, p-value = 0.01169 SO, t-test not valid.
+wilcox.test(et_o_n_nt$mean_solds_o, et_o_n_nt$mean_solds_n, paired = TRUE) # Paired test for diff between mean level of defense in original and new cavities for no_threat treatement
+# V = 73, p-value = 0.004883
+
+wilcox.test(et_o_n_t$mean_solds_o, et_o_n_t$mean_solds_n, paired = TRUE) # Paired test for diff between mean level of defense in original and new cavities for threat treatement
+# V = 66, p-value = 0.00384
+
+### Level of defense in large and small cavities under no-threat & threat
+et_sum_nt_no0 <- (et_sum_nt[et_sum_nt$av_def_large>0.0 & et_sum_nt$av_def_small>0.0,]) #subset for colonies that defended at least one large and one small colony under no-threat conditions
+wilcox.test(et_sum_nt_no0$av_def_large, et_sum_nt_no0$av_def_small, paired = TRUE) #Test for all subsetted colonies defending at least one large and one small under no-threat
+#V = 36, p-value = 0.01415
+
+var.test(log(et_sum_nt_no0$av_def_large), log(et_sum_nt_no0$av_def_small)) #Test for all subsetted colonies defending at least one large and one small under no-threat
+t.test(log(et_sum_nt_no0$av_def_large), log(et_sum_nt_no0$av_def_small), paired = TRUE) #Test for all subsetted colonies defending at least one large and one small under no-threat
+#t = 3.6446, df = 9, p-value = 0.005363
+
+et_sum_t_no0 <- (et_sum_t[et_sum_t$av_def_large>0.0 & et_sum_t$av_def_small>0.0,]) #subset for colonies that defended at least one large and one small colony under threat conditions
+wilcox.test(et_sum_t_no0$av_def_large, et_sum_t_no0$av_def_small, paired = TRUE) #Test for all subsetted colonies defending at least one large and one small under threat
+#V = 16, p-value = 0.2945
+
+var.test(log(et_sum_t_no0$av_def_large), log(et_sum_t_no0$av_def_small)) #Test for all subsetted colonies defending at least one large and one small under no-threat
+t.test(log(et_sum_t_no0$av_def_large), log(et_sum_t_no0$av_def_small), paired = TRUE) #Test for all subsetted colonies defending at least one large and one small under no-threat
+#t = 0.9471, df = 6, p-value = 0.3802
+
+
+### Figure for level of defense in small and large cavities in two contexts
+library(lattice)
+dotplot(jitter(av_def,0) ~ ent, group=colony, data= et_sum_sizes_nt_no0, col="black", type=c("b"), ylab="Mean soldiers per cavity", xlab="Entrance size", aspect = 3/1.1, ylim=c(0.6,8.4)) #Figure for level of defense in large and small ent cavities under no-threat for only colonies that defended at least one cavity of both ent sizes. Height on quartz window overridden to 3.8 inches
+
+library(lattice)
+dotplot(jitter(av_def,0) ~ ent, group=colony, data= et_sum_sizes_t_no0, col="black", type=c("b"), ylab="Mean soldiers per cavity", xlab="Entrance size", aspect = 3/1.1, ylim=c(0.6,8.4)) #Figure for level of defense in large and small ent cavities under threat for only colonies that defended at least one cavity of both ent sizes. Height on quartz window overridden to 3.8 inches
+
+
+
+## TOTAL SOLDIER DEPLOYMENT
+
+### Total deployment under threat and no threat
+wilcox.test(et_sum$total_sold_dep ~ et_sum$treatment, paired = TRUE)
+#V = 68.5, p-value = 0.02228
+#This uses the wilcox formula argument, with the data for each colony in sucessive rows, and the same consistent treatment order. Other arangements are incorrect.
+
+wilcox.test(et_sum_td$total_sold_dep_nt, et_sum_td$total_sold_dep_t, paired=TRUE)
+#V = 68.5, p-value = 0.02228
+#This uses the wilcoxon arrangement of data for each treatment split between differnt vectors, with the data in teh same row treated as the pairs. This verifies the result uding the formula argument.
+
+var.test(log(et_sum_td$total_sold_dep_nt), log(et_sum_td$total_sold_dep_t))
+#F = 0.4445, num df = 11, denom df = 11, p-value = 0.1944
+t.test(log(et_sum_td$total_sold_dep_nt), log(et_sum_td$total_sold_dep_t), paired=TRUE)
+#t = 2.9789, df = 11, p-value = 0.01254
+
+
+
+### Proportional total deployment under threat and no threat
+wilcox.test(et_sum_td$prop_sold_dep_nt, et_sum_td$prop_sold_dep_t, paired=TRUE) #Proportional soldier deployment
+#V = 55.5, p-value = 0.05035 
+
+var.test(log(et_sum_td$prop_sold_dep_nt), log(et_sum_td$prop_sold_dep_t))
+#F = 0.3503, num df = 11, denom df = 11, p-value = 0.09601
+t.test(log(et_sum_td$prop_sold_dep_nt), log(et_sum_td$prop_sold_dep_t), paired=TRUE) #Proportional soldier deployment
+#t = 2.6764, df = 11, p-value = 0.02155
+
+### Regression lines for total and deployed soldiers under no-threat
+sd_on_s_nt <- lm(log(total_sold_dep) ~ log(sold_avail), data=et_sum_nt)
+summary(sd_on_s_nt)
+#Residual standard error: 0.4597 on 10 degrees of freedom
+#Multiple R-squared:  0.5295,	Adjusted R-squared:  0.4825 
+#F-statistic: 11.26 on 1 and 10 DF,  p-value: 0.007304
+
+
+x<-log(et_sum_nt$sold_avail) #Sig test slope diff. from 1, using this manual code block
+y<-log(et_sum_nt$total_sold_dep)
+model<-lm(y~x)
+es<-resid(model)	# the residuals of the defined y~x model
+b1<-coef(model)[["x"]] # the x part of the coefficients
+s<-sqrt( sum( es^2 ) / (10) ) # 10 in bracket is n-2 d.f.
+SE<-s/sqrt(sum((x-mean(x))^2))
+t<-(b1-(1))/SE	# 1 in inner brackets is the slope value for comparison
+2*pt(abs(t), 10, lower.tail=FALSE)	# abs() makes the t-value absolute so p-calcs are not affected by returned neg. t-values, 2nd value [10] is n-2 d.f., lower.tail=FALSE gives upper tail (one-tail) P-value, 2* multiples 1-tail result to give 2-tail P-value out
+
+#0.9762876 Outputted p-value, so here slope is NOT sig. diff. from 1
+
+(b1-(1))/SE #copied and pasted from within above code to give t-value for reporting. Can double check outputted P-value by comparing this t-value against tables
+
+#0.03047536 Outputted t-value
+
+
+### Regression lines for total and deployed soldiers under threat
+sd_on_s_t <- lm(log(total_sold_dep) ~ log(sold_avail), data=et_sum_t)
+summary(sd_on_s_t)
+#Residual standard error: 0.773 on 10 degrees of freedom
+#Multiple R-squared:  0.4088,	Adjusted R-squared:  0.3497 
+#F-statistic: 6.914 on 1 and 10 DF,  p-value: 0.02518
+
+x<-log(et_sum_t$sold_avail) #Sig test slope diff. from 1, using this manual code block
+y<-log(et_sum_t$total_sold_dep)
+model<-lm(y~x)
+es<-resid(model)	# the residuals of the defined y~x model
+b1<-coef(model)[["x"]] # the x part of the coefficients
+s<-sqrt( sum( es^2 ) / (10) ) # 10 in bracket is n-2 d.f.
+SE<-s/sqrt(sum((x-mean(x))^2))
+t<-(b1-(1))/SE	# 1 in inner brackets is the slope value for comparison
+2*pt(abs(t), 10, lower.tail=FALSE)	# abs() makes the t-value absolute so p-calcs are not affected by returned neg. t-values, 2nd value [10] is n-2 d.f., lower.tail=FALSE gives upper tail (one-tail) P-value, 2* multiples 1-tail result to give 2-tail P-value out
+
+#0.6362349 Outputted p-value, so here slope is NOT sig. diff. from 1
+
+(b1-(1))/SE # copied and pasted from within above code to give t-value for reporting. Can double check outputted P-value by comparing this t-value against tables
+
+#0.4877624 Outputted t-value
+
+
+### Figure of total soldier deployment on soldier availability
+par(pty="s", fin=c(4.0, 4.0))
+with(et_sum_nt, plot(log(sold_avail), log(total_sold_dep), pch=21, bg="gray80", xlab="", ylab="", xaxt="n", yaxt="n", bty="l", xlim=c(log(7),log(50)), ylim=c(log(1),log(30))))
+abline(lm(log(total_sold_dep) ~ log(sold_avail), data=et_sum_nt), lwd=1.25)
+
+xtemptck <- c(7,8,9,10,20,30,40,50)
+ytemptck <- c(1,2,3,4,5,6,7,8,9,10,20,30)
+axis(1, at=log(c(7,10,50)), label=c(7,10,50), mgp=c(2,0.3,0), lwd=0, cex.axis=0.8)
+axis(1, at=log(xtemptck), mgp=c(2,0.3,0), tck=-0.02, label=F, lwd=0, lwd.ticks=1)
+axis(2, at=log(c(2,10,30)), label=c(2,10,30), mgp=c(3,0.6,0), lwd=0, cex.axis=0.8, las=1)
+axis(2, at=log(ytemptck), mgp=c(3,0.6,0), tck=-0.02, label=F, lwd=0, lwd.ticks=1)
+mtext("Available soldiers", side=1, line=2)
+mtext("Soldiers deployed to new cavities", side=2, line=2.6)
+
+with(data=et_sum_t, (points(log(sold_avail), log(total_sold_dep), pch=23, cex=1, bg="white")))
+abline(lm(log(total_sold_dep) ~ log(sold_avail), data=et_sum_t), lty=5, lwd=1.25, col="black") #Codes for cavity area points
+
+abline(a=-1.0192, b=1, lty=3, col="black", lwd=0.75) #Code for slope = 1 line, using intercept value for the non-threatened relationship. Optional to include
+
+abline(a=-2.1771, b=1, lty=3, col="grey50", lwd=0.75) #Code for slope = 1 line, using intercept value for the threat relationship. Optional to include
+
+
+
+

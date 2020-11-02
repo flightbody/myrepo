@@ -4,30 +4,12 @@ author: "Fiona Lightbody"
 date: "9/28/2020"
 output:
   pdf_document: default
-  html_document: default
-bibliography: 
-csl: ecology.csa
+bibliography: Powell.bib
 ---
 
 #Reproducing code from 
 #[@Powell:2017dd] 
 
-#@article{RN14,
-#author = {Powell, Scott and Donaldson-Matasci, Matina and Woodrow-Tomizuka, Augustus and Dornhaus, Anna},
-#title = {Context-dependent defences in turtle ants: Resource defensibility and threat #level induce dynamic shifts in soldier deployment},
-#journal = {Functional Ecology},
-#volume = {31},
-#number = {12},
-#pages = {2287-2298},
-#ISSN = {0269-8463},
-#DOI = {10.1111/1365-2435.12926},
-#url = {https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/1365-2435.12926},
-#year = {2017},
-#type = {Journal Article}
-}
-
-
-#STUCK: I cannot figure out how to put this paper into the necessary citation format from endnote into a bibliography file 
 
 
 #COMPLETED: loaded in data and packages 

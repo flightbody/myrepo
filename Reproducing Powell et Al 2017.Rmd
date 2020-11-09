@@ -23,13 +23,17 @@ knitr::opts_chunk$set(echo = TRUE)
 #package 'survival' was built under R version 3.6.2 and was downloaded in the binary format, not the source version
 
 ```{r data_input, include=TRUE}
-Collection_data <- read_csv("~/Google Drive/AA Graduate /Data and Software Tools EBIO6660/data/Cephalotes_rohweri_collection_data.csv") 
-Field_expt <- read_csv("~/Google Drive/AA Graduate /Data and Software Tools EBIO6660/data/Cephalotes_rohweri_field_expt.csv")
+library(readr)
+Collection_data <- read_csv("Cephalotes_rohweri_collection_data.csv")
 
-Lab_expt <- read_csv("~/Google Drive/AA Graduate /Data and Software Tools EBIO6660/data/Cephalotes_rohweri_lab_expt.csv")
+library(survival)
+field_expt <- read_csv("Cephalotes_rohweri_field_expt.csv")
+
+Lab_expt <- read_csv("Cephalotes_rohweri_lab_expt.csv")
 
 ```
 #data was readily available by the author in csv format. So far no metadata or code has been located for this paper. 
+
 ### PROGRESS REPORT OCT 17
 #STILL WORKING ON IT: Next I will work with the data to generate summarizing graphics and work on the first boxplot which I seek to reproduce. Next I will familiarize myself with the survival package in order to generate the survivorship curve. 
 
@@ -38,6 +42,142 @@ Lab_expt <- read_csv("~/Google Drive/AA Graduate /Data and Software Tools EBIO66
 
 ### PROGRESS REPORT NOV 2
 #STILL WORKING ON IT: Code does not run independently upon first attempt. I split up the code below into sections differentiated by the author. 
+
+PROGRESS REPORT NOV 8 
+In the interest of reproducing figures 2 & 3 from the article, only the code from those specific sections are included in this file. The full, unedited code from Dr. Powell is available on GitHub. 
+FIGURE 2: Outlier boxplots of nest-entrance sizes in natural cavity nests, on log scale 
+
+```{r, include=TRUE }
+#By Entrance Area
+par(pty="s",bty="l",tcl=0.02,mgp=c(2.4,0.6,0))
+
+boxplot(Collection_data$ent_area_mm, cex.axis=0.8, ylim=c(2,39),las=1,log="y", xant="n", xlab=expression(italic("C.rohweri")~"nests"),ylab="Entrance area (mm2)", whisklty=1, boxlwd=1,boxwex=0.7,medlwd=1,whisklwd=1,outpch=1,outcex=1,outwld=1)
+
+  points(1,mean(Collection_data$ent_area_mm),pch=4,col="black")
+
+ytemptck<-c(2,3,4,5,6,7,8,9,10,20,30,40)
+axis(2, at=ytemptck, tck=-0.02, label=F, lwd=0, lwd.ticks=1)
+axis(2, at=c(2,5,10,40), label=c(2,5,10,40), mgp=c(3,0.6,0), lwd=0, cex.axis=0.8, las=1)
+
+
+summary(Collection_data$ent_area_mm)
+
+#By Head Area 
+
+par(pty="s", bty="l", tcl=-0.2, mgp=c(2.4, 0.6, 0), fin=c(4.0, 4.0))
+boxplot(Collection_data$rel_area, cex.axis=0.8, ylim=c(0.7,18), log="y", xaxt="n", yaxt="n",las=1, xlab=expression(italic("C. rohweri")~"nests"), ylab="Entrance area (head areas)", whisklty=1, boxlwd=1, boxwex=0.7, medlwd=1, whisklwd=1, outpch=1, outcex=1, outlwd=1)
+
+points(1,mean(Collection_data$rel_area),pch=4,col="black") #To add a point for the calculated mean
+
+ytemptck <- c(1,2,3,4,5,6,7,8,9,10,20)
+axis(2, at=ytemptck, tck=-0.02, label=F, lwd=0, lwd.ticks=1)
+axis(2, at=c(1,5,10,20), label=c(1,5,10,20), mgp=c(3,0.6,0), lwd=0, cex.axis=0.8, las=1)
+
+summary(Collection_data$rel_area)
+```
+
+
+
+FIGURE 3: Survivorship Curves for small entrance nests under natural threat context; all 3 groups #Notes on survival package: 
+  Surv(time, event)
+        or
+  Surv(time, time2, event, type=, origin=0)
+  
+#STUCK: Upon running this chunk, progress is stopped at line 104, first Survival function: Error in Surv(defend$week, defend$death) : Time variable is not numeric
+
+```{r, include=TRUE}
+library(survival)
+defend <- read_csv("Cephalotes_rohweri_field_expt.csv")
+
+#subsetting the data: 
+
+defend_s <- defend[which(defend$hole_size=='S'), ] #Subset data for all small entrance cavities
+
+defend_s_yn <-defend_s[which(defend_s$soldiers=='y'), ] #Subset data for whether cavities have soldiers or not
+
+defend_s0s1 <-defend_s[which(defend_s$s0_s1=='y'), ] #Subset data for only s0 and s1 cavities
+
+defend_s0s6 <-defend_s[which(defend_s$s0_s6=='y'), ] #Subset data for only s0 and s6 cavities
+
+defend_s1s6 <-defend_s[which(defend_s$s1_s6=='y'), ] #Subset data for only s1 and s6 cavities 
+
+
+## CREATE SURVIVAL OBJECTS
+defend_surv <- Surv(defend$week,defend$death) #Survival object for all data
+
+defend_surv_s <- Surv(defend_s$week,defend_s$death) #Survival object for all small-ent data
+
+defend_surv_s0s1 <- Surv(defend_s0s1$week,defend_s0s1$death) #Survival data for all s0 and s1 data
+
+defend_surv_s0s6 <- Surv(defend_s0s6$week,defend_s0s6$death) #Survival data for all s0 and s6 data
+
+defend_surv_s1s6 <- Surv(defend_s1s6$week,defend_s1s6$death) #Survival data for all s1 and s6 data
+
+
+## SURVIVAL ANALYSES FOR ALL COMBINATIONS
+
+survdiff(defend_surv ~ defend$hole_size, rho=0) #Comparison of small vs. bigs ents. 
+                    #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend$hole_size=B 33       33     20.1      8.29      37.4
+#defend$hole_size=S 33       20     32.9      5.06      37.4
+#Chisq= 37.4  on 1 degrees of freedom, p= 9.47e-10 
+
+survdiff(defend_surv_s ~ defend_s$nest, rho=0) #Comparison for 0, 1, and 6 soldiers.
+                  #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend_s$nest=S0 11       11     5.93     4.335     7.256
+#defend_s$nest=S1 11        7     8.27     0.195     0.359
+#defend_s$nest=S6 11        5     8.80     1.641     3.149 
+#Chisq= 7.6  on 2 degrees of freedom, p= 0.0218
+
+survdiff(defend_surv_s0s1 ~ defend_s0s1$nest, rho=0) #Comparison of 0 vs. 1 soldier. 
+                     #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend_s0s1$nest=S0 11       11      7.1      2.14       4.6
+#defend_s0s1$nest=S1 11        7     10.9      1.39       4.6
+#Chisq= 4.6  on 1 degrees of freedom, p= 0.0321 
+
+survdiff(defend_surv_s0s6 ~ defend_s0s6$nest, rho=0) #Comparison of 0 vs. 6 soldier. 
+                     #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend_s0s6$nest=S0 11       11     6.52      3.08      6.41
+#defend_s0s6$nest=S6 11        5     9.48      2.12      6.41
+#Chisq= 6.4  on 1 degrees of freedom, p= 0.0114 
+
+survdiff(defend_surv_s1s6 ~ defend_s1s6$nest, rho=0) #Comparison of 1 vs. 6 soldier. 
+                     #N Observed Expected (O-E)^2/E (O-E)^2/V
+#defend_s1s6$nest=S1 11        7     5.77     0.262     0.567
+#defend_s1s6$nest=S6 11        5     6.23     0.243     0.567
+#Chisq= 0.6  on 1 degrees of freedom, p= 0.452 
+
+
+### Simple survival plot for all three small-ent treatments
+plot_s <- survfit((defend_surv_s ~ defend_s$nest), conf.type="none")
+plot(plot_s, xlab="Time", ylab="Proportional cavity survival") # Plot with all lines
+
+
+### Fancy survival plot for all three small-ent treatments
+par(pty="s", bty="l", fin=c(4.0, 4.0)) #Set plot space
+defend_s0 <- defend[ which(defend$nest=='S0'), ] #subset for s0 data
+defend_surv_s0 <- Surv(defend_s0$week, defend_s0$death) #survival object for s0 data
+plot_s0 <- survfit((defend_surv_s0 ~ defend_s0$nest), conf.type="none") #create survival curve for s0
+defend_s1 <- defend[ which(defend$nest=='S1'), ] #subset for s1 data
+defend_surv_s1 <- Surv(defend_s1$week, defend_s1$death) #survival object for s1 data
+plot_s1 <- survfit((defend_surv_s1 ~ defend_s1$nest), conf.type="none") #create survival curve for s1
+defend_s6 <- defend[ which(defend$nest=='S6'), ] #subset for s6 data
+defend_surv_s6 <- Surv(defend_s6$week, defend_s6$death) #survival object for s6 data
+plot_s6 <- survfit((defend_surv_s6 ~ defend_s6$nest), conf.type="none") #create survival curve for s6
+plot(plot_s6, xlab="Weeks", ylab="Proportion of surviving cavities", mgp=c(3,0.6,0), lty=1, tck=-0.02, cex.axis=0.8, las=1) # Plot with S6 nests
+lines(plot_s1, lty=2) # Line for S1 nests
+lines(plot_s0, lty=3) # Line for S0 nests
+
+
+
+
+```
+
+
+
+
+
+
 
 # ---------- FIELD COLLECTION DATA ----------
 
@@ -423,4 +563,5 @@ abline(a=-2.1771, b=1, lty=3, col="grey50", lwd=0.75) #Code for slope = 1 line, 
 ```
 
 
-# References 
+### References 
+

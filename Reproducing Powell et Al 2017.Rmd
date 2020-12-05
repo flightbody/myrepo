@@ -16,7 +16,7 @@ bibliography: Powell.bibtex
 ```{r setup, include=TRUE}
 rm(list=ls())
 
-library(survival)
+
 library(tidyverse)
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -24,8 +24,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r data_input, include=TRUE}
 library(readr)
-Collection_data <- read_csv("Cephalotes_rohweri_collection_data.csv")
+Collection_data <- read_csv("Cephalotes_rohweri_collection_data.csv") 
+# Create Entrance areas standardized to head areas (2.9 mm^2)
 
+Collection_data$rel_area <- Collection_data$ent_area_mm / 2.9
+  
+  
 library(survival)
 field_expt <- read_csv("Cephalotes_rohweri_field_expt.csv")
 
@@ -47,13 +51,13 @@ PROGRESS REPORT NOV 8
 In the interest of reproducing figures 2 & 3 from the article, only the code from those specific sections are included in this file. The full, unedited code from Dr. Powell is available on GitHub. 
 FIGURE 2: Outlier boxplots of nest-entrance sizes in natural cavity nests, on log scale 
 
-```{r, include=TRUE }
+```{r figure2, include=TRUE }
 #By Entrance Area
 par(pty="s",bty="l",tcl=0.02,mgp=c(2.4,0.6,0))
 
 boxplot(Collection_data$ent_area_mm, cex.axis=0.8, ylim=c(2,39),las=1,log="y", xant="n", xlab=expression(italic("C.rohweri")~"nests"),ylab="Entrance area (mm2)", whisklty=1, boxlwd=1,boxwex=0.7,medlwd=1,whisklwd=1,outpch=1,outcex=1,outwld=1)
 
-  points(1,mean(Collection_data$ent_area_mm),pch=4,col="black")
+  #points(1,mean(Collection_data$ent_area_mm),pch=4,col="black")
 
 ytemptck<-c(2,3,4,5,6,7,8,9,10,20,30,40)
 axis(2, at=ytemptck, tck=-0.02, label=F, lwd=0, lwd.ticks=1)
@@ -63,11 +67,12 @@ axis(2, at=c(2,5,10,40), label=c(2,5,10,40), mgp=c(3,0.6,0), lwd=0, cex.axis=0.8
 summary(Collection_data$ent_area_mm)
 
 #By Head Area 
+#somehow need to figure out how the rel_area column was calculated in order to put data onto boxplot 
 
 par(pty="s", bty="l", tcl=-0.2, mgp=c(2.4, 0.6, 0), fin=c(4.0, 4.0))
 boxplot(Collection_data$rel_area, cex.axis=0.8, ylim=c(0.7,18), log="y", xaxt="n", yaxt="n",las=1, xlab=expression(italic("C. rohweri")~"nests"), ylab="Entrance area (head areas)", whisklty=1, boxlwd=1, boxwex=0.7, medlwd=1, whisklwd=1, outpch=1, outcex=1, outlwd=1)
 
-points(1,mean(Collection_data$rel_area),pch=4,col="black") #To add a point for the calculated mean
+#points(1,mean(Collection_data$rel_area),pch=4,col="black") #To add a point for the calculated mean
 
 ytemptck <- c(1,2,3,4,5,6,7,8,9,10,20)
 axis(2, at=ytemptck, tck=-0.02, label=F, lwd=0, lwd.ticks=1)
@@ -83,7 +88,7 @@ FIGURE 3: Survivorship Curves for small entrance nests under natural threat cont
         or
   Surv(time, time2, event, type=, origin=0)
   
-#STUCK: Upon running this chunk, progress is stopped at line 104, first Survival function: Error in Surv(defend$week, defend$death) : Time variable is not numeric
+#STUCK: Upon running this chunk, progress is stopped, first Survival function: Error in Surv(defend$week, defend$death) : Time variable is not numeric
 
 ```{r, include=TRUE}
 library(survival)
@@ -100,10 +105,19 @@ defend_s0s1 <-defend_s[which(defend_s$s0_s1=='y'), ] #Subset data for only s0 an
 defend_s0s6 <-defend_s[which(defend_s$s0_s6=='y'), ] #Subset data for only s0 and s6 cavities
 
 defend_s1s6 <-defend_s[which(defend_s$s1_s6=='y'), ] #Subset data for only s1 and s6 cavities 
+```
 
+head(defend)
+
+timetodeath <-defend %>% 
+  group_by(week_death) %>% 
+  summarize(n=n(),BodyMass=mean(BM,na.rm=TRUE)) %>%
+  pivot_wider(id_cols=Species,names_from=Habitat,values_from = BodyMass) %>%
+  mutate(Diff.BM = 100 * ((FOREST - COFFEE) / COFFEE)) %>% 
+  arrange(Species)
 
 ## CREATE SURVIVAL OBJECTS
-defend_surv <- Surv(defend$week,defend$death) #Survival object for all data
+defend_surv <- Surv(defend$week) #Survival object for all data
 
 defend_surv_s <- Surv(defend_s$week,defend_s$death) #Survival object for all small-ent data
 
@@ -112,7 +126,7 @@ defend_surv_s0s1 <- Surv(defend_s0s1$week,defend_s0s1$death) #Survival data for 
 defend_surv_s0s6 <- Surv(defend_s0s6$week,defend_s0s6$death) #Survival data for all s0 and s6 data
 
 defend_surv_s1s6 <- Surv(defend_s1s6$week,defend_s1s6$death) #Survival data for all s1 and s6 data
-
+```
 
 ## SURVIVAL ANALYSES FOR ALL COMBINATIONS
 
